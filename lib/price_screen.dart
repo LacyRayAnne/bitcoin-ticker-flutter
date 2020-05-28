@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-
 import 'coin_data.dart';
 import 'dart:io' show Platform;
 
@@ -11,32 +10,22 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
+  String exchangeRate;
+  CoinData coinData = CoinData();
 
-  List<Widget> pickerItems;
-
-  Widget getPicker() {
-    if (Platform.isIOS) {
-      iOSPicker(currenciesList);
-    } else if (Platform.isAndroid) {
-      androidDropdownButton(currenciesList);
-    }
-  }
-
-  DropdownButton<String> androidDropdownButton(List<String> stringList) {
-    List<DropdownMenuItem<String>> dropDownItems = [];
-
-    for (String item in stringList) {
-      dropDownItems.add(
-        DropdownMenuItem(
-          child: Text(item),
-          value: item,
-        ),
+  DropdownButton<String> androidDropdown() {
+    List<DropdownMenuItem<String>> dropdownItems = [];
+    for (String currency in currenciesList) {
+      var newItem = DropdownMenuItem(
+        child: Text(currency),
+        value: currency,
       );
+      dropdownItems.add(newItem);
     }
 
     return DropdownButton<String>(
       value: selectedCurrency,
-      items: dropDownItems,
+      items: dropdownItems,
       onChanged: (value) {
         setState(() {
           selectedCurrency = value;
@@ -45,13 +34,10 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  CupertinoPicker iOSPicker(List<String> stringList) {
-    List<Widget> pickerItems = [];
-
-    for (String item in stringList) {
-      pickerItems.add(
-        Text(item),
-      );
+  CupertinoPicker iOSPicker() {
+    List<Text> pickerItems = [];
+    for (String currency in currenciesList) {
+      pickerItems.add(Text(currency));
     }
 
     return CupertinoPicker(
@@ -64,9 +50,18 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  void getData() async {
+    var holder = await coinData.getCoinData(fiatType: 'USD', coinType: 'BTC');
+    print(holder);
+    setState(() {
+      exchangeRate = holder.toString();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    getData();
   }
 
   @override
@@ -90,7 +85,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  '1 BTC = $exchangeRate USD',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -105,9 +100,7 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: Platform.isIOS
-                ? iOSPicker(currenciesList)
-                : androidDropdownButton(currenciesList),
+            child: Platform.isIOS ? iOSPicker() : androidDropdown(),
           ),
         ],
       ),
