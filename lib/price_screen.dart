@@ -10,7 +10,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
-  String exchangeRate;
+  String exchangeRate = '?';
   CoinData coinData = CoinData();
 
   DropdownButton<String> androidDropdown() {
@@ -51,11 +51,16 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void getData() async {
-    var holder = await coinData.getCoinData(fiatType: 'USD', coinType: 'BTC');
-    print(holder);
-    setState(() {
-      exchangeRate = holder.toString();
-    });
+    try {
+      double holder =
+          await coinData.getCoinData(fiatType: 'USD', coinType: 'BTC');
+
+      setState(() {
+        exchangeRate = holder.toStringAsFixed(0);
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
